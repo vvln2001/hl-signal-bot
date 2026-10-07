@@ -31,7 +31,8 @@ import aiohttp  # noqa: E402
 from coinmap import CoinMapper  # noqa: E402
 from config import load_config, load_wallets  # noqa: E402
 from detector import baseline, diff, parse_clearinghouse  # noqa: E402
-from fmt import confluence_text, signal_text  # noqa: E402
+from fmt import confluence_brief, signal_brief  # noqa: E402
+from tracker import Tracker, advise, fmtp, pct  # noqa: E402
 from notifier import Notifier  # noqa: E402
 
 log = logging.getLogger("bot")
@@ -86,6 +87,9 @@ class Monitor:
         self.started = time.time()
         self.baseline_logged = False
         self.skip_logged: dict = {}
+        self.tracker = Tracker()
+        self.report_day = ""
+        self.n_wallets = len(wallets)
 
     # ------------------------------------------------------------------ state
     def load_state(self) -> None:
@@ -105,6 +109,8 @@ class Monitor:
         self.conf_events = [e for e in st.get("conf_events", []) if time.time() - e["t"] < self.cfg["confluence_window_h"] * 3600]
         self.conf_sent = {tuple(k.split("|", 1)): tuple(v) for k, v in st.get("conf_sent", {}).items()}
         self.recent = {k: v for k, v in st.get("recent", {}).items() if time.time() - v < 3600}
+        self.tracker.load(st)
+        self.report_day = st.get("report_day", "")
         if age <= self.cfg["restart_rediff_max_age_s"]:
             self.known = {k for k in self.books}
             log.info("state %.0fs old: resuming diff from saved positions (%d books)", age, len(self.books))
@@ -116,7 +122,7 @@ class Monitor:
               "books": {f"{a}|{d}": b for (a, d), b in self.books.items()},
               "conf_events": self.conf_events,
               "conf_sent": {f"{k[0]}|{k[1]}": list(v) for k, v in self.conf_sent.items()},
-              "recent": self.recent}
+              "recent": self.recent, "report_day": self.report_day, **self.tracker.dump()}
         if getattr(self.n, "chat_id", "") and not self.cfg.get("telegram_chat_id"):
             st["telegram_chat_id"] = self.n.chat_id  # owner bound via /start
         if getattr(self.n, "qq", None) and self.n.qq.group and not os.environ.get("QQ_GROUP_OPENID"):
@@ -349,11 +355,36 @@ class Monitor:
             self.stats["suppressed"] += 1
             log.info("below min notional $%s / unannounced: %s", f"{self.cfg['min_notional_usd']:,.0f}", summary)
             return
-        text = signal_text(ev, w, inst, note, mult, self.cfg, self.last_fill_px.get((addr, coin)), now)
+        price = self.last_fill_px.get((addr, coin)) or ev.get("mark_px")
+        side = ev["side"]
+        alert = w["tier"] in self.cfg["alert_tiers"] and not (self.cfg["quiet_mode"] and act in ("add", "reduce"))
+        kind = f"{w['tier']}{'加仓' if act == 'add' else '开仓'}"
+        chase = None
+        if act in ("close", "reduce"):
+            tr = self.tracker.get(inst, side)
+            if tr:
+                ch = pct(tr["first_px"], price, side)
+                track_line = (f"该币首次{'开多' if side == 'long' else '开空'}播报价 {fmtp(tr['first_px'])}"
+                              f" → 现 {fmtp(price)} ({ch:+.2f}%)" if ch is not None else "")
+            else:
+                track_line = "此前无该方向开仓播报"
+        else:
+            prev = self.tracker.hit(inst, side, price, addr, now) if alert else (self.tracker.get(inst, side) or {})
+            if prev and prev.get("n"):
+                chase = pct(prev["first_px"], price, side)
+            track_line = self.tracker.line(prev, price, side, now)
+            nw = len(set((prev.get("wallets") or []) + [addr])) if prev else 1
+            if nw > 1:
+                track_line += f" · 24h内同向钱包{nw}个"
+            if w["tier"] in ("A", "B"):
+                self.tracker.add_sample(kind, coin, side, price, now)
+                self.dirty = True
+        text = signal_brief(ev, w, self.n_wallets, price, track_line,
+                            advise(kind, act, ev.get("lev"), chase, self.tracker))
         if w["tier"] not in self.cfg["alert_tiers"]:
             log.info("tier %s logged only: %s", w["tier"], summary)
             self.n.record(text, f"LOGGED_TIER_{w['tier']}")
-        elif self.cfg["quiet_mode"] and act in ("add", "reduce"):
+        elif not alert:
             log.info("quiet mode, logged only: %s", summary)
             self.n.record(text, "LOGGED_QUIET")
         else:
@@ -361,7 +392,7 @@ class Monitor:
             self.stats["alerts"] += 1
             self.n.send(text, silent=self.in_quiet_hours(now))
         if act in ("open", "flip") and w["tier"] in self.cfg["confluence_tiers"]:
-            self._conf_add(addr, w, inst, ev, now)
+            self._conf_add(addr, w, inst, ev, now, price)
 
     def in_quiet_hours(self, now: float) -> bool:
         qh = self.cfg.get("quiet_hours")
@@ -376,7 +407,7 @@ class Monitor:
         self.conf_events = [e for e in self.conf_events
                             if not (e["addr"] == addr and e["inst"] == inst and e["side"] == side)]
 
-    def _conf_add(self, addr, w, inst, ev, now):
+    def _conf_add(self, addr, w, inst, ev, now, price=None):
         win = self.cfg["confluence_window_h"] * 3600
         self.conf_events = [e for e in self.conf_events if now - e["t"] < win]
         self._conf_remove(addr, inst, ev["side"])
@@ -391,10 +422,45 @@ class Monitor:
             self.conf_sent[k] = (n, now)
             self.dirty = True
             log.info("CONFLUENCE %s %s x%d", inst, ev["side"], n)
-            self.n.send(confluence_text(inst.replace("-USDT-SWAP", ""), inst, ev["side"], members, self.cfg, now),
-                        kind="CONFLUENCE")
+            tr = self.tracker.get(inst, ev["side"])
+            ch = pct(tr["first_px"], price, ev["side"]) if tr else None
+            if tr and ch is not None:
+                line = f"首次播报价 {fmtp(tr['first_px'])} → 现 {fmtp(price)} ({ch:+.2f}%)"
+            else:
+                line = f"现价 {fmtp(price)}"
+            kind = "共振3+" if n >= 3 else "共振2"
+            self.tracker.add_sample(kind, ev["coin"], ev["side"], price, now)
+            ranks = {a: self.wallets[a]["rank"] for a in self.wallets}
+            self.n.send(confluence_brief(inst.replace("-USDT-SWAP", ""), ev["side"], members, self.n_wallets, ranks,
+                                         line, advise(kind, "open", None, ch, self.tracker)), kind="CONFLUENCE")
 
     # ------------------------------------------------------------- loops
+    async def eval_loop(self) -> None:
+        """Re-price past signals (1h/4h/24h) and send a daily review."""
+        while True:
+            await asyncio.sleep(600)
+            now = time.time()
+            mids = {}
+            for d in self.tracker.pending_dexes(now):
+                body = {"type": "allMids"}
+                if d:
+                    body["dex"] = d
+                try:
+                    st, data = await self.post(body, 2)
+                    if st == 200 and isinstance(data, dict):
+                        mids[d] = data
+                except Exception as e:
+                    log.warning("allMids failed: %s", e)
+            if mids and self.tracker.fill(mids, now):
+                self.dirty = True
+            lt = time.gmtime(now + self.cfg["tz_offset_h"] * 3600)
+            day = time.strftime("%Y-%m-%d", lt)
+            if lt.tm_hour >= int(self.cfg.get("report_hour", 21)) and self.report_day != day:
+                self.report_day = day
+                self.dirty = True
+                if self.tracker.samples:
+                    self.n.send(self.tracker.report(), kind="REPORT")
+
     async def scheduler_loop(self) -> None:
         tick = 60.0 / (self.cfg["max_weight_per_min"] / W_CH)
         log.info("REST ticker: one request every %.0f ms (cap %d weight/min)", tick * 1000,
@@ -513,7 +579,7 @@ class Monitor:
         for (a, d) in list(self.known):  # resumed: refresh soon so downtime changes surface
             self.enqueue("base", a, d, "resume")
         tasks = [asyncio.create_task(supervise(n, f)) for n, f in
-                 (("scheduler", self.scheduler_loop), ("ws", self.ws_loop), ("telegram", self.n.run), ("qq", self.n.qq.run))]
+                 (("scheduler", self.scheduler_loop), ("ws", self.ws_loop), ("telegram", self.n.run), ("qq", self.n.qq.run), ("eval", self.eval_loop))]
         try:
             if run_seconds:
                 await asyncio.sleep(run_seconds)

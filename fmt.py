@@ -99,3 +99,49 @@ def confluence_text(coin: str, inst: str, side: str, members: List[dict], cfg: d
                      f"{usd(m.get('value'))} @ {px(m.get('entry_px'))} ({ago}分钟前)")
     lines.append(f"🕒 {ts(now, cfg['tz_offset_h'])}")
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------- brief format (v2)
+BRIEF = {
+    ("open", "long"): ("🟢", "开多"), ("open", "short"): ("🔴", "开空"),
+    ("add", "long"): ("🟢", "加仓多"), ("add", "short"): ("🔴", "加仓空"),
+    ("reduce", "long"): ("⚪", "减仓多"), ("reduce", "short"): ("⚪", "减仓空"),
+    ("close", "long"): ("⚪", "平多"), ("close", "short"): ("⚪", "平空"),
+    ("flip", "long"): ("🔄", "反手开多"), ("flip", "short"): ("🔄", "反手开空"),
+}
+
+
+def signal_brief(ev: dict, w: dict, n_wallets: int, price: Optional[float], track_line: str,
+                 advice: str) -> str:
+    emo, act = BRIEF[(ev["action"], ev["side"])]
+    coin = html.escape(ev["coin"].split(":")[-1])
+    a = ev["action"]
+    lines = [f"{emo} <b>{coin} {act}</b> | {w['tier']}级 第{w['rank']}/{n_wallets}名"]
+    lev = f" · {ev['lev']}x" if ev.get("lev") and a != "close" else ""
+    if a == "close":
+        lines.append(f"平仓 {usd(ev['prev_value'])} · 价 {px(price)} · 盈亏 {usd(ev['prev_upnl'], True)}")
+    elif a in ("add", "reduce"):
+        lines.append(f"仓位 {usd(ev['prev_value'])} → <b>{usd(ev['value'])}</b>{lev} · 价 {px(price)}")
+    else:
+        lines.append(f"仓位 <b>{usd(ev['value'])}</b>{lev} · 价 {px(price)}")
+    lines.append(track_line)
+    lines.append(f"建议：{advice}")
+    return "\n".join(lines)
+
+
+def confluence_brief(coin: str, side: str, members: List[dict], n_wallets: int, ranks: dict,
+                     track_line: str, advice: str) -> str:
+    d = "做多" if side == "long" else "做空"
+    emo = "🟢" if side == "long" else "🔴"
+    tiers = {}
+    for m in members:
+        tiers[m["tier"]] = tiers.get(m["tier"], 0) + 1
+    ts_ = " ".join(f"{k}×{v}" for k, v in sorted(tiers.items()))
+    total = sum(m.get("value") or 0 for m in members)
+    lines = [f"🔥 <b>共振 {html.escape(coin)} {d}</b> {emo} | {len(members)}个钱包 ({ts_})",
+             f"合计仓位 <b>{usd(total)}</b>"]
+    for m in sorted(members, key=lambda x: x["t"]):
+        lines.append(f"• {m['tier']}级第{ranks.get(m['addr'], '?')}名 {usd(m.get('value'))} @ {px(m.get('entry_px'))}")
+    lines.append(track_line)
+    lines.append(f"建议：{advice}")
+    return "\n".join(lines)
