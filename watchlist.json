@@ -1,0 +1,182 @@
+[
+ {
+  "address": "0xc56891f98eecb32926abb8d627f57c99e6536ecd",
+  "tier": "A",
+  "monitor": "ws_userFills",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0x3a23b10845e911b6944d9dc2f1f480fca3af35d6",
+  "tier": "A",
+  "monitor": "ws_userFills",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0x69906b0ed626ca01a4b7c001e5711e5714ccf207",
+  "tier": "A",
+  "monitor": "ws_userFills",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0x8aa077f5998d234ac8641d73d6bc4976e2a210fc",
+  "tier": "A",
+  "monitor": "ws_userFills",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0x95da8596c44dd09f4b8becce87ad3b7894fb2328",
+  "tier": "A",
+  "monitor": "ws_userFills",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0x6a02aedceac5a6813d960e4dae1910d9c458e77c",
+  "tier": "A",
+  "monitor": "ws_userFills",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0x98e073b579fd483eac8f10d5bd0b32c8c3bbd7e0",
+  "tier": "A",
+  "monitor": "ws_userFills",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0x04a97ae7f350a22cd0cdb6b1875e8905b76495aa",
+  "tier": "B",
+  "monitor": "ws_userFills",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0x88409ec78c566ba325e7023ec90f9be89a9b9699",
+  "tier": "B",
+  "monitor": "ws_userFills",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0xb7658d7c63b6c1fc7254fe9402a95d044db70dbc",
+  "tier": "B",
+  "monitor": "ws_userFills",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0x0b38c01118342098d6f108cc3741349089cd9590",
+  "tier": "B",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0xa99c9e5484e5b26635c07876d0859a1819ff40d5",
+  "tier": "B",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0x8bae3527e5a33fa0cf184f37bc112d071463ab6d",
+  "tier": "B",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0x308fd47d492cf32d0f504c2a3e82bc25583b455b",
+  "tier": "B",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0xb69eec8fea0081343c3b09e652ba1fa7dcf7033a",
+  "tier": "B",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0x051c2e6d49cf82ebc47f08f9b85800f94fc9693c",
+  "tier": "B",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0x0f859756ab0f1655ca61b32d21f6cf9ec2b998dc",
+  "tier": "B",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0xf9faba57a81d1575d3e506dd3eafe7db6f2a3275",
+  "tier": "B",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0x0a506b1e47726e769949086ea60b5b01cbaf956a",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0xd223626a37fdd7f3aa0727edebcf1b94d2e5ae69",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0x5740affc8faf8913f9f2d5fbb9bdc6e8119ea9da",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0x757df2c060ec6c7ba898fa6570aa98c1f46294ba",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0x2f58adc8b81f51b02acf65eff40d9f5bbb88bc9e",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0x739ccf4aa388ddade09316f7aee5ed0ec7ae5739",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0xd6e1a6f7bb47aca69aaa511210227d40926ff256",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0xa9d90f0eb0993390bd02a2c50cee658ebd01b48e",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0x12f7aea21eed5461d30212ea771c4441656b8750",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0xd21d931890d27b6e7e2e668f27931e17698e90f1",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": true
+ },
+ {
+  "address": "0xc6758a779bccee1ef0190dbe8292fdf44076795d",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": false
+ },
+ {
+  "address": "0x59629e23c52a0d7c092436870ef2db1dc382ddf8",
+  "tier": "C",
+  "monitor": "rest_clearinghouseState",
+  "hip3_dex_poll": false
+ }
+]
