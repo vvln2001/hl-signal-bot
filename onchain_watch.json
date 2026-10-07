@@ -1,0 +1,40 @@
+{
+  "_comment": "链上大户监控（BSC）。min_amount 单位为代币数量。新增代币就在 tokens 里加一项。",
+  "enabled": true,
+  "poll_s": 12,
+  "exchange_nonce_min": 50000,
+  "rpcs": ["https://bsc-rpc.publicnode.com", "https://bsc.drpc.org", "https://bsc-dataseed.bnbchain.org"],
+  "tokens": [
+    {
+      "symbol": "CNPY",
+      "token": "0xC69B16CF18CEA1e5D0bb6a1a9db802097790dDD2",
+      "decimals": 6,
+      "gate_pair": "CNPY_USDT",
+      "min_amount": 100000,
+      "watch": {
+        "0xc882b111a75c0c657fc507c04fbfcd2cc984f071": "大户#1(占BSC 30%)",
+        "0xeab47221d60a219379e74ddc98027f22ec3eb33f": "大户#2(13%)",
+        "0x73d8bd54f7cf5fab43fe4ef40a62d390644946db": "大户#3合约(11.6%)",
+        "0x82d0ffbedc162e98151636976623dbf4f37a68dc": "大户#5(8.9%)",
+        "0xab782bc7d4a2b306825de5a7730034f8f63ee1bc": "大户#7(4.8%)",
+        "0x1cac6c09956cf32d279281d3fe6c81ab6e4b2d3a": "大户#9合约(3.2%)"
+      },
+      "exchanges": {
+        "0x0d0707963952f2fba59dd06f2b425ace40b492fe": "Gate",
+        "0x4982085c9e2f89f2ecb8131eca71afad896e89cb": "交易所热钱包#8",
+        "0xed9ab5bc05a0152b9dc2f7902e8369af7bc18771": "交易所热钱包#6",
+        "0x8894e0a0c962cb723c1976a4421c95949be2d4e3": "Binance",
+        "0xf977814e90da44bfa03b6295a0616a897441acec": "Binance",
+        "0x5a52e96bacdabb82fd05763e25335261b270efcb": "Binance",
+        "0xe2fc31f816a9b94326492132018c3aecc4a93ae1": "Binance",
+        "0x3c783c21a0383057d128bae431894a5c19f9cf06": "Binance",
+        "0xdccf3b77da55107280bd850ea519df3705d1a75a": "Binance"
+      },
+      "dex": {
+        "0x238a358808379702088667322f80ac48bad5e6c4": "PancakeSwap",
+        "0xa0ffb9c1ce1fe56963b0321b32e7a0302114058b": "PancakeSwap",
+        "0x28e2ea090877bf75740558f6bfb36a5ffee9e9df": "Uniswap"
+      }
+    }
+  ]
+}
