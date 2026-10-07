@@ -11,6 +11,8 @@ from logging.handlers import RotatingFileHandler
 
 import aiohttp
 
+from qq import QQGroup
+
 log = logging.getLogger("notifier")
 
 
@@ -31,6 +33,7 @@ class Notifier:
                 pass
         self.sent = 0
         self.failed = 0
+        self.qq = QQGroup(cfg, session)
         self.slog = logging.getLogger("signals")
         self.slog.propagate = False
         if not self.slog.handlers:
@@ -46,6 +49,7 @@ class Notifier:
 
     def send(self, text: str, silent: bool = False, kind: str = "SIGNAL") -> None:
         self.record(text, kind)
+        self.qq.send(text)
         if self.log_only:
             print(f"\n===== [{kind}] (log-only) =====\n{re.sub(r'<[^>]+>', '', text)}\n", flush=True)
             return

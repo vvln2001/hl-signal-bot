@@ -119,6 +119,8 @@ class Monitor:
               "recent": self.recent}
         if getattr(self.n, "chat_id", "") and not self.cfg.get("telegram_chat_id"):
             st["telegram_chat_id"] = self.n.chat_id  # owner bound via /start
+        if getattr(self.n, "qq", None) and self.n.qq.group and not os.environ.get("QQ_GROUP_OPENID"):
+            st["qq_group_openid"] = self.n.qq.group
         tmp = self.cfg["state_file"] + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump(st, f, separators=(",", ":"))
@@ -511,7 +513,7 @@ class Monitor:
         for (a, d) in list(self.known):  # resumed: refresh soon so downtime changes surface
             self.enqueue("base", a, d, "resume")
         tasks = [asyncio.create_task(supervise(n, f)) for n, f in
-                 (("scheduler", self.scheduler_loop), ("ws", self.ws_loop), ("telegram", self.n.run))]
+                 (("scheduler", self.scheduler_loop), ("ws", self.ws_loop), ("telegram", self.n.run), ("qq", self.n.qq.run))]
         try:
             if run_seconds:
                 await asyncio.sleep(run_seconds)
@@ -528,7 +530,7 @@ async def supervise(name, fn):
     while True:
         try:
             await fn()
-            if name == "telegram":
+            if name in ("telegram", "qq"):
                 return
         except asyncio.CancelledError:
             raise
