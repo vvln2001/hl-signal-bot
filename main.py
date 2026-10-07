@@ -34,6 +34,7 @@ from detector import baseline, diff, parse_clearinghouse  # noqa: E402
 from fmt import confluence_brief, signal_brief  # noqa: E402
 from tracker import Tracker, advise, fmtp, pct  # noqa: E402
 from notifier import Notifier  # noqa: E402
+from onchain import OnchainWatcher  # noqa: E402
 
 log = logging.getLogger("bot")
 W_CH = 2  # clearinghouseState weight
@@ -579,7 +580,8 @@ class Monitor:
         for (a, d) in list(self.known):  # resumed: refresh soon so downtime changes surface
             self.enqueue("base", a, d, "resume")
         tasks = [asyncio.create_task(supervise(n, f)) for n, f in
-                 (("scheduler", self.scheduler_loop), ("ws", self.ws_loop), ("telegram", self.n.run), ("qq", self.n.qq.run), ("eval", self.eval_loop))]
+                 (("scheduler", self.scheduler_loop), ("ws", self.ws_loop), ("telegram", self.n.run), ("qq", self.n.qq.run), ("eval", self.eval_loop),
+                  ("onchain", OnchainWatcher(self.n, self.session).run))]
         try:
             if run_seconds:
                 await asyncio.sleep(run_seconds)
@@ -596,7 +598,7 @@ async def supervise(name, fn):
     while True:
         try:
             await fn()
-            if name in ("telegram", "qq"):
+            if name in ("telegram", "qq", "onchain"):
                 return
         except asyncio.CancelledError:
             raise
