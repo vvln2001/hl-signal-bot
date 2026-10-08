@@ -79,6 +79,7 @@ class Monitor:
         self.ws_connected = False
         self.ws_last_msg = 0.0
         self.recent: dict = {}    # dedupe key -> t
+        self.majors = {c.upper() for c in self.cfg.get("exclude_coins") or []}
         self.conf_events: list = []
         self.conf_sent: dict = {}
         self.dirty = False
@@ -348,6 +349,11 @@ class Monitor:
                    f"value {ev['value'] or ev['prev_value'] or 0:,.0f}")
         if act == "close" or (act == "flip"):
             self._conf_remove(addr, inst or coin, "long" if ev["prev_szi"] > 0 else "short")
+        base = coin.upper()
+        if base in self.majors:
+            self.stats["skipped_major"] = self.stats.get("skipped_major", 0) + 1
+            log.info("SKIP major coin: %s", summary)
+            return
         if inst is None:
             self.stats["skipped_okx"] += 1
             log.info("SKIP (%s): %s", note, summary)
