@@ -29,5 +29,24 @@
   "stats_every_s": 60,
   "labels": {},
   "coin_overrides": {},
-  "log_level": "INFO"
+  "log_level": "INFO",
+  "exclude_coins": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "XRP",
+    "BNB",
+    "DOGE",
+    "HYPE",
+    "ADA",
+    "TRX",
+    "LINK",
+    "AVAX",
+    "SUI",
+    "LTC",
+    "BCH",
+    "DOT",
+    "TON",
+    "XLM"
+  ]
 }
