@@ -38,6 +38,7 @@ DEFAULTS = {
     "stats_every_s": 60,
     "labels": {},
     "coin_overrides": {},
+    "exclude_coins": [],
     "log_level": "INFO",
     "api_url": "https://api.hyperliquid.xyz/info",
     "ws_url": "wss://api.hyperliquid.xyz/ws",
